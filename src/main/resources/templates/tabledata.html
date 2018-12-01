@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="template :: datatables-header">
+</head>
+
+
+<body>
+<div th:replace="template :: rowsmenu"></div>
+
+	
+	<div th:if="${mode} eq 'MODE_ROWS'" class="container text-centre" id="rowsDiv">
+<div th:if="${infoText!=null}">
+<div id="infobox" class="alert alert-info" onclick="$('#infobox').slideUp(200, function() {
+    $(this).alert('close');
+});">
+  <strong>Info&times;</strong>
+  <span  th:text="${infoText}"></span>
+</div>
+</div>
+<div th:if="${errText!=null}">
+<div id="errorbox" class="alert alert-danger" onclick="$('#errorbox').slideUp(200, function() {
+    $(this).alert('close');
+});">
+  <strong>Error&times;</strong>
+  <span  th:text="${errText}"></span>
+</div>
+</div>
+
+		<h3>Data for table <span th:text="${tableName}"></span></h3>
+		<div>Selected table Id:	<span th:text="${selectedTable}"></span></div>
+		<hr />
+		<div class="text-center">
+		<button class="btn btn-primary" id="delbutton" >Delete Selected</button>
+		<button class="btn btn-primary" id="newbutton" >Add row</button>
+		<button class="btn btn-primary" id="updatebutton" >Update selected row</button><br/>
+		  <span style="color: red;" >Amount Sum = </span><span style="color: red;"  th:text="${Sum}"></span>
+		  </div>
+		<div class="table-responsive" >
+			<table id="rowstable" class="display table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Date</th>
+						<th>Category</th>
+						<th>Amount</th>
+						<th>Note</th>
+						
+					</tr>
+				</thead>
+				<tfoot>
+					<tr>
+						<th>Id</th>
+						<th>Date</th>
+						<th>Category</th>
+						<th>Amount</th>
+						<th>Note</th>
+						
+					</tr>
+				</tfoot>
+				
+			</table>
+			
+		</div>
+		<script  th:inline="javascript">
+		   $(document).ready(function() {
+				function getTableData(reqUrl){
+					return 	$('#rowstable').DataTable({
+						ajax: {
+							url: reqUrl,
+							dataSrc: 'data'
+						},
+						
+						columns: [
+						    { "mData": "id"},
+					        { "mData": "cdate" },
+							{ "mData": "cat" },
+							{ "mData": "amount" },
+							{ "mData": "note" }
+							  ]
+					});
+				}
+				var tableId = [[${selectedTable}]];
+				//var baseUrl= "/mtables/tabledata/jrows";
+				var baseUrl=[[${DTJROWS}]];
+				var url =  baseUrl;
+			
+				var table=	getTableData(url);
+			
+			$('#rowstable tbody').on( 'click', 'tr', function () {
+		        if ( $(this).hasClass('selected') ) {
+		            $(this).removeClass('selected');
+		        }
+		        else {
+		            table.$('tr.selected').removeClass('selected');
+		            $(this).addClass('selected');
+		        }
+		    } );
+		 
+		    $('#delbutton').click( function () {
+		    	var row= table.row('.selected');
+		    	if(row.data()===undefined) return;
+		    	console.log(row.data());
+		    	var rowId= row.data().id;
+		    	window.location=  baseUrl+'/'+rowId;
+		    	/**
+		    	$.ajax({
+		    		url: baseUrl+'/'+rowId,
+		    		type: 'DELETE',
+		    		success: function(){
+		    			//table.row('.selected').remove().draw( false );
+		    		    window.location= '/mtables/tabledata';
+		    		},
+		    		error: function(xhr,textStatus, errorText){
+		    			alert('Delete Error!\n'+textStatus+'\n'+errorText);
+		    		}
+		    	});
+		    	**/
+		       // table.row('.selected').remove().draw( false );
+		    } );
+		    $('#updatebutton').click(function(){
+		    	//var baseUrl = '/mtables/tabledata/update/'; 
+		    	var baseUrl = [[${DTUPDATE}]];
+		    	var row= table.row('.selected');
+		    	if(row.data()===undefined) return;
+		    	var rowId= row.data().id;
+		    	var updateUrl =  baseUrl+rowId;
+		    	window.location= updateUrl;
+		    });
+		    $('#newbutton').click(function(){
+		    	var updateUrl =  [[${DTNEW}]];
+		    	window.location= updateUrl;
+		    });
+			//------//
+			});
+			
+		</script>
+
+	</div>
+
+
+			
+<div th:if="${mode} eq 'MODE_NEW_ROW' or ${mode} eq 'MODE_UPDATE_ROW'">
+				<form class="form-horizontal" method="post" action="#" th:action="${saverow}" th:object="${row}">
+				  <input type="hidden" th:field="*{id}" />
+
+			<div class="form-group">
+				<label class="control-label col-md-3">Date</label>
+				<div class="col-md-7">
+					<!-- To use formated date input use  
+						          @DateTimeFormat(pattern="dd/MM/yyyy") for date field in entity Class !!!
+						      -->
+
+					<div class="input-group date" data-provide="datepicker"
+						data-date-format="dd/mm/yyyy">
+						<input type="text" class="form-control" th:field="*{cdate}" />
+						<div class="input-group-addon">
+							<span class="glyphicon glyphicon-th"></span>
+						</div>
+					</div>
+				</div>
+				<span style="color: red;" th:if="${#fields.hasErrors('cdate')}"
+					th:errors="*{cdate}">Error</span>
+			</div>
+			<div class="form-group">
+						<label class="control-label col-md-3">Category</label>
+						<div class="col-md-7">
+							<input type="text" class="form-control" th:field="*{cat}" />
+						
+						</div>
+						<span style="color: red;" th:if="${#fields.hasErrors('cat')}" th:errors="*{cat}">Cat Error</span>
+ 
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-3">Amount</label>
+						<div class="col-md-7">
+							<input type="text" class="form-control" th:field="*{amount}" />
+						
+						</div>
+						<span style="color: red;" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Error</span>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-md-3">Note</label>
+						<div class="col-md-7">
+							<input type="text" class="form-control" th:field="*{note}" />
+						
+						</div>
+						<span style="color: red;" th:if="${#fields.hasErrors('note')}" th:errors="*{note}">Error</span>
+					</div>
+					<div class="pull-right">
+						<input type="submit" class="btn btn-primary" value="Submit" />
+					</div>
+				</form>
+
+</div>
+
+
+<div th:replace="template :: footer"></div>			
+</body>
+
+</html>

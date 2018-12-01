@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+	
+	</head>
+	
+	<body>
+		<div th:text="'Dummy ' + ${result} + '!'"></div>
+		<div th:text="'Dummy ' + ${result1} + '!'"></div>
+		<hr/>
+		<table th:each="el:${resultLst}">
+		<tr th:text="${el}"></tr>
+		</table>
+		
+	</body>
+	
+	
+	
+</html>
